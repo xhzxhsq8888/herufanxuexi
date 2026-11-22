@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>九年级物理 · 公式手写检测</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:#eef2f7;color:#1f2937;min-height:100vh;
+    padding:14px 12px 48px;
+  }
+  .app{max-width:760px;margin:0 auto;}
+
+  #errorBar{
+    display:none;max-width:760px;margin:0 auto 10px;
+    background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;
+    border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.6;
+    white-space:pre-wrap;word-break:break-all;
+  }
+  #toast{
+    position:fixed;left:50%;bottom:60px;transform:translateX(-50%) translateY(20px);
+    background:rgba(30,41,59,.95);color:#fff;font-size:14px;
+    padding:11px 20px;border-radius:99px;opacity:0;pointer-events:none;
+    transition:.25s;z-index:9999;max-width:88vw;text-align:center;
+    box-shadow:0 6px 20px rgba(0,0,0,.25);
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.warn{background:rgba(194,65,12,.96);}
+
+  .hero{
+    text-align:center;padding:18px 12px 20px;border-radius:16px;color:#fff;
+    background:linear-gradient(135deg,#1e3a8a,#2563eb 60%,#3b82f6);
+    box-shadow:0 10px 26px rgba(37,99,235,.28);
+    margin-bottom:14px;
+  }
+  .hero h1{margin:0 0 6px;font-size:20px;letter-spacing:2px;}
+  .hero p{margin:0;font-size:12px;color:#bfdbfe;letter-spacing:1px;}
+
+  .card{
+    background:#fff;border-radius:16px;padding:18px;margin-bottom:14px;
+    box-shadow:0 6px 20px rgba(15,23,42,.07);
+  }
+  .card-title{
+    font-size:15px;margin:0 0 14px;color:#1e3a8a;font-weight:800;
+    display:flex;align-items:center;gap:8px;
+  }
+  .card-title::before{
+    content:"";width:4px;height:16px;border-radius:2px;
+    background:linear-gradient(#2563eb,#60a5fa);
+  }
+
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:13px;color:#475569;margin-bottom:6px;font-weight:600;}
+  .field input{
+    width:100%;padding:12px 14px;border:1.5px solid #cbd5e1;border-radius:10px;
+    font-size:15px;outline:none;font-family:inherit;background:#f8fafc;
+  }
+  .field input:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.12);}
+  .field input.err{border-color:#ef4444;background:#fef2f2;}
+
+  .hint{
+    margin:14px 0 0;font-size:12.5px;color:#64748b;line-height:1.85;
+    background:#f8fafc;border-radius:10px;padding:10px 12px;
+    border-left:3px solid #93c5fd;
+  }
+
+  .btn{
+    border:none;border-radius:10px;padding:12px 18px;font-size:15px;font-weight:700;
+    cursor:pointer;font-family:inherit;transition:.16s;
+  }
+  .btn:active{transform:scale(.985);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn.primary{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.3);}
+  .btn.ghost{background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;}
+  .btn.danger{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;}
+  .btn.success{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,.3);}
+  #btnStart{width:100%;}
+  .actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  .actions .btn{flex:1;min-width:110px;}
+
+  /* ===== 答题区 ===== */
+  .quiz-head{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:12px;font-size:13px;color:#64748b;
+  }
+  .who{font-weight:800;color:#1e3a8a;}
+  .progress{font-weight:600;color:#2563eb;background:#eff6ff;padding:3px 10px;border-radius:99px;font-size:12px;}
+
+  .quiz-row{display:flex;gap:12px;align-items:stretch;}
+  .prompt-box{
+    flex:0 0 38%;background:linear-gradient(160deg,#eff6ff,#dbeafe);
+    border:1.5px solid #bfdbfe;border-radius:14px;padding:14px;
+    display:flex;flex-direction:column;justify-content:center;min-height:190px;
+  }
+  .q-index{
+    display:inline-block;align-self:flex-start;background:#2563eb;color:#fff;
+    font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;margin-bottom:10px;
+  }
+  .q-prompt{font-size:16px;font-weight:800;color:#1e3a8a;line-height:1.5;}
+  .q-sub{margin-top:8px;font-size:12.5px;color:#3b82f6;line-height:1.6;}
+
+  .write-box{
+    flex:1;position:relative;border:2px dashed #93c5fd;border-radius:14px;
+    background:#fff;min-height:190px;overflow:hidden;
+  }
+  .write-box.done{border-style:solid;border-color:#cbd5e1;background:#f8fafc;}
+  #pad{display:block;width:100%;height:100%;min-height:190px;touch-action:none;cursor:crosshair;}
+  .pad-hint{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    color:#cbd5e1;font-size:14px;pointer-events:none;letter-spacing:2px;
+  }
+
+  /* ===== 单题结果 ===== */
+  #qResult{
+    margin-top:14px;padding:14px;border-radius:12px;display:flex;gap:12px;
+    align-items:center;flex-wrap:wrap;
+  }
+  #qResult.ok{background:#dcfce7;border:1px solid #86efac;}
+  #qResult.bad{background:#fee2e2;border:1px solid #fca5a5;}
+  .q-res-icon{flex:0 0 auto;}
+  .q-res-text{flex:1;min-width:160px;font-size:14px;line-height:1.7;}
+  .q-res-text b{font-size:15px;}
+  .q-res-ans{
+    font-family:"Times New Roman",serif;font-style:italic;font-weight:700;
+    color:#1d4ed8;font-size:16px;
+  }
+  .q-res-sim{font-size:12px;color:#64748b;}
+
+  /* ===== 总成绩 ===== */
+  .result-head{display:flex;align-items:center;justify-content:center;gap:26px;flex-wrap:wrap;padding:8px 0;}
+  .result-meta{font-size:14px;color:#475569;line-height:2.1;}
+  .result-meta b{color:#1d4ed8;font-size:17px;font-weight:800;}
+  .level-pill{display:inline-block;padding:2px 14px;border-radius:99px;font-size:13px;font-weight:800;background:#f1f5f9;color:#64748b;}
+  .res-msg{margin:14px 0 0;padding:10px 14px;border-radius:10px;background:#f8fafc;font-size:13.5px;color:#475569;text-align:center;border:1px dashed #cbd5e1;}
+
+  .detail{margin-top:14px;font-size:13.5px;color:#334155;}
+  .detail table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .detail th,.detail td{border:1px solid #e2e8f0;padding:6px 8px;text-align:left;}
+  .detail th{background:#f1f5f9;color:#334155;font-weight:700;font-size:12px;}
+  .detail td.c{text-align:center;}
+  .ok-tag{color:#15803d;font-weight:800;}
+  .bad-tag{color:#dc2626;font-weight:800;}
+  .ans-mono{font-family:"Times New Roman",serif;font-style:italic;color:#1d4ed8;}
+
+  .teacher p{margin:0 0 12px;font-size:13px;color:#64748b;}
+  .teacher p b{color:#1d4ed8;font-size:15px;}
+
+  /* ===== 弹窗 ===== */
+  #candidateModal {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 10000;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+    backdrop-filter: blur(2px);
+  }
+  #candidateModal.show { display: flex; }
+  .candidate-box {
+    background: #fff; border-radius: 16px; padding: 22px 20px; width: 100%; max-width: 420px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: popIn .2s ease-out;
+    max-height: 90vh; display: flex; flex-direction: column;
+  }
+  @keyframes popIn {
+    0% { transform: scale(0.95); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .candidate-title {
+    font-size: 18px; font-weight: 800; color: #1e3a8a; margin-bottom: 6px; text-align: center;
+  }
+  .candidate-sub {
+    font-size: 13px; color: #64748b; margin-bottom: 18px; text-align: center; line-height: 1.5;
+  }
+  .candidate-list { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; margin-bottom: 10px; }
+  .candidate-item {
+    background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 14px; font-size: 20px; font-family: "Times New Roman", "Cambria", serif; font-style: italic;
+    font-weight: 700; color: #1d4ed8; text-align: center; cursor: pointer; transition: all .15s;
+    letter-spacing: 1px; flex-shrink: 0;
+  }
+  .candidate-item:hover, .candidate-item:active {
+    background: #eff6ff; border-color: #93c5fd; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37,99,235,0.1);
+  }
+  .candidate-footer { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; flex-shrink: 0; }
+  .btn-link { background: none; border: none; color: #2563eb; text-decoration: underline; cursor: pointer; font-size: 13px; padding: 8px; font-family: inherit; }
+
+  @media (max-width:560px){
+    .quiz-row{flex-direction:column;}
+    .prompt-box{flex:none;min-height:auto;}
+    .write-box{min-height:200px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="errorBar"></div>
+<div id="toast"></div>
+
+<!-- 弹窗 -->
+<div id="candidateModal">
+  <div class="candidate-box">
+    <div id="modalNormalView">
+      <div class="candidate-title">AI 猜你写的是：</div>
+      <div class="candidate-sub">
+        选项中故意混入了<b>易错公式</b>，<br>请仔细分辨并点击你手写的公式
+      </div>
+      <div class="candidate-list" id="candidateList"></div>
+      <div class="candidate-footer">
+        <button class="btn-link" id="btnShowAll">❓ 选项都不对？点此查看全部公式库</button>
+        <button class="btn ghost" id="btnCancelCandidate">都不对，重新手写</button>
+      </div>
+    </div>
+    
+    <div id="modalAllView" style="display:none; height: 100%; overflow: hidden; display: flex; flex-direction: column;">
+      <div class="candidate-title" style="margin-bottom:12px;">全部公式库</div>
+      <div class="candidate-list" id="allFormulaList" style="flex:1;"></div>
+      <div class="candidate-footer">
+        <button class="btn ghost" id="btnBackToNormal">⬅ 返回推荐选项</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+  <header class="hero">
+    <h1>九年级物理 · 公式手写检测</h1>
+    <p>手写答题 · 防错识别 · 点击确认 · 每题10分</p>
+  </header>
+
+  <!-- ===== 开始 ===== -->
+  <section class="card" id="setupPanel">
+    <h2 class="card-title">开始检测</h2>
+    <div class="field">
+      <label for="inClass">班级</label>
+      <input id="inClass" type="text" placeholder="例如：九年级(3)班" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="inName">姓名</label>
+      <input id="inName" type="text" placeholder="请输入你的姓名" autocomplete="off">
+    </div>
+    <button class="btn primary" id="btnStart">开始答题</button>
+    <p class="hint">
+      答题说明：系统随机显示提示，请在右侧手写。<b>提交后，选项中会混入易错公式陷阱，请仔细找出你写的那个并点击。</b>
+    </p>
+  </section>
+
+  <!-- ===== 答题 ===== -->
+  <section class="card" id="quizPanel" hidden>
+    <div class="quiz-head">
+      <span class="who" id="whoLabel"></span>
+      <span class="progress" id="progressLabel">第 1 / 9 题</span>
+    </div>
+
+    <div class="quiz-row">
+      <div class="prompt-box">
+        <span class="q-index" id="qIndex">第 1 题</span>
+        <div class="q-prompt" id="qPrompt"></div>
+        <div class="q-sub" id="qSub"></div>
+      </div>
+      <div class="write-box" id="writeBox">
+        <canvas id="pad"></canvas>
+        <div class="pad-hint" id="padHint">在此手写公式</div>
+      </div>
+    </div>
+
+    <div class="actions" id="qActions">
+      <button class="btn ghost" id="btnUndo">撤销一笔</button>
+      <button class="btn ghost" id="btnClearPad">清空重写</button>
+      <button class="btn primary" id="btnSubmitQ">提交本题</button>
+    </div>
+
+    <div id="qResult" hidden></div>
+
+    <div class="actions" id="qNav" hidden>
+      <button class="btn primary" id="btnNextQ">下一题 →</button>
+    </div>
+  </section>
+
+  <!-- ===== 总成绩 ===== -->
+  <section class="card" id="resultPanel" hidden>
+    <h2 class="card-title">检测成绩</h2>
+    <div class="result-head">
+      <svg width="128" height="128" viewBox="0 0 128 128" aria-hidden="true">
+        <circle cx="64" cy="64" r="52" fill="none" stroke="#e2e8f0" stroke-width="12"/>
+        <circle id="ringArc" cx="64" cy="64" r="52" fill="none" stroke="#2563eb" stroke-width="12"
+                stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
+                transform="rotate(-90 64 64)"/>
+        <text id="ringScore" x="64" y="62" text-anchor="middle" font-size="30" font-weight="800" fill="#1e3a8a">0</text>
+        <text x="64" y="82" text-anchor="middle" font-size="12" fill="#94a3b8">分</text>
+      </svg>
+      <div class="result-meta">
+        <div>答对 <b id="resCorrect">0</b> / 9 题</div>
+        <div>正确率 <b id="resAcc">0%</b></div>
+        <div>等级 <span class="level-pill" id="resLevel">—</span></div>
+      </div>
+    </div>
+    <p class="res-msg" id="resMsg"></p>
+    <div class="detail" id="resDetail"></div>
+    <div class="actions">
+      <button class="btn ghost" id="btnAgain">再测一次</button>
+      <button class="btn primary" id="btnNextStudent">下一位同学</button>
+    </div>
+  </section>
+
+  <!-- ===== 教师区 ===== -->
+  <section class="card teacher">
+    <h2 class="card-title">教师区</h2>
+    <p>本机已记录 <b id="recCount">0</b> 名学生的检测结果。</p>
+    <div class="actions">
+      <button class="btn primary" id="btnDownload">下载 物理量与符号检测结果.DOC</button>
+      <button class="btn danger" id="btnClear">清空本机记录</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ==========================================================
+   0. 全局错误提示
+   ========================================================== */
+window.onerror = function(msg, url, line, col){
+  var bar = document.getElementById('errorBar');
+  if(!bar) return;
+  bar.style.display = 'block';
+  bar.textContent = '⚠ 页面脚本出错：' + msg + '\n位置：第 ' + line + ' 行';
+};
+
+var toastTimer = null;
+function toast(msg, warn){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = (warn ? 'warn' : '') + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.className = (warn ? 'warn' : ''); }, 2400);
+}
+
+/* ==========================================================
+   1. 题库 (加入了干扰项 distractors)
+   ========================================================== */
+var QUESTIONS = [
+  { 
+    key:'ohm_expr', prompt:'欧姆定律表达式', sub:'电流与电压、电阻的关系', display:'I = U / R', 
+    answers:['I=[U|R]','I=U/R','I=U÷R'],
+    distractors:['I=[R|U]', 'I=UR', 'I=U-R']
+  },
+  { 
+    key:'ohm_u', prompt:'欧姆定律变形 —— 求电压', sub:'由 I=U/R 变形得到', display:'U = IR', 
+    answers:['U=IR','U=I×R','U=I·R'],
+    distractors:['U=[I|R]', 'U=[R|I]', 'U=I/R']
+  },
+  { 
+    key:'ohm_r', prompt:'欧姆定律变形 —— 求电阻', sub:'由 I=U/R 变形得到', display:'R = U / I', 
+    answers:['R=[U|I]','R=U/I','R=U÷I'],
+    distractors:['R=[I|U]', 'R=UI', 'R=U-I']
+  },
+  { 
+    key:'p_wt', prompt:'用电功和时间求电功率', sub:'电功率的定义式', display:'P = W / t', 
+    answers:['P=[W|t]','P=W/t','P=W÷t'],
+    distractors:['P=[t|W]', 'P=Wt', 'P=t/W']
+  },
+  { 
+    key:'p_ui', prompt:'用电压和电流求电功率', sub:'电功率的计算式', display:'P = UI', 
+    answers:['P=UI','P=U×I','P=U·I'],
+    distractors:['P=[U|I]', 'P=[I|U]', 'P=U/I']
+  },
+  { 
+    key:'q_cm', prompt:'用比热容求物体吸收的热量', sub:'吸热公式', display:'Q = cmΔt', 
+    answers:['Q=cmΔt','Q=cm(t-t0)','Q=cm(t−t0)','Q吸=cmΔt','Q=cm△t'],
+    distractors:['Q=[cm|Δt]', 'Q=cm/Δt', 'Q=c/mΔt']
+  },
+  { 
+    key:'q_fuel', prompt:'用热值求燃料完全燃烧放出的热量', sub:'放热公式', display:'Q = qm', 
+    answers:['Q=qm','Q=qV','Q=qv','Q放=qm'],
+    distractors:['Q=[q|m]', 'Q=[m|q]', 'Q=q/m']
+  },
+  { 
+    key:'q_joule', prompt:'焦耳定律 —— 电流通过导体产生的热量', sub:'电热公式', display:'Q = I²Rt', 
+    answers:['Q=I²Rt','Q=I2Rt','Q=I*I*R*t','Q=I×I×R×t'],
+    distractors:['Q=IRt', 'Q=IR²t', 'Q=I²R/t', 'Q=I²R']
+  },
+  { 
+    key:'q_uit', prompt:'电热的其他计算式', sub:'用电压、电流、时间求电热', display:'Q = UIt', 
+    answers:['Q=UIt','Q=Pt','Q=U²t/R','Q=U2t/R'],
+    distractors:['Q=Ut/I', 'Q=It/U', 'Q=UI/t']
+  }
+];
+
+/* ==========================================================
+   2. 全局状态与候选池
+   ========================================================== */
+var STORE_KEY = 'phy_formula_handwriting_records_v4';
+var TOTAL_Q = QUESTIONS.length;
+var PER_SCORE = 10;
+
+var student = { name:'', className:'' };
+var quizOrder = [];
+var qIndex = 0;
+var answers = {};
+var currentStrokes = [];
+var drawing = false;
+var submitted = false;
+var currentQObj = null; // 当前题目对象
+
+var pad, padCtx, writeBox, padHint;
+
+// 预生成全题库的正确候选项
+var ALL_FORMULAS = [];
+(function initAllFormulas(){
+  var seen = {};
+  QUESTIONS.forEach(function(q){
+    q.answers.forEach(function(ans){
+      if(!seen[ans]){
+        seen[ans] = true;
+        var text = ans.replace(/\[/g, '').replace(/\]/g, '').replace(/\|/g, ' / ');
+        ALL_FORMULAS.push({ answerStr: ans, display: text });
+      }
+    });
+  });
+})();
+
+/* ==========================================================
+   3. 工具函数
+   ========================================================== */
+function $(id){ return document.getElementById(id); }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i = a.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+
+/* ==========================================================
+   4. 手写画布
+   ========================================================== */
+function initPad(){
+  pad = $('pad');
+  writeBox = $('writeBox');
+  padHint = $('padHint');
+
+  var dpr = window.devicePixelRatio || 1;
+  var rect = writeBox.getBoundingClientRect();
+  pad.width = rect.width * dpr;
+  pad.height = rect.height * dpr;
+  pad.style.width = rect.width + 'px';
+  pad.style.height = rect.height + 'px';
+
+  padCtx = pad.getContext('2d');
+  padCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  padCtx.lineWidth = 3;
+  padCtx.lineCap = 'round';
+  padCtx.lineJoin = 'round';
+  padCtx.strokeStyle = '#1e3a8a';
+
+  bindPadEvents();
+}
+
+function getPos(e){
+  var r = pad.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function bindPadEvents(){
+  pad.addEventListener('pointerdown', function(e){
+    if(submitted) return;
+    e.preventDefault();
+    try{ pad.setPointerCapture(e.pointerId); }catch(err){}
+    drawing = true;
+    padHint.style.display = 'none';
+    var p = getPos(e);
+    currentStrokes.push([p]);
+    redrawPad();
+  });
+
+  pad.addEventListener('pointermove', function(e){
+    if(!drawing || submitted) return;
+    e.preventDefault();
+    var p = getPos(e);
+    var s = currentStrokes[currentStrokes.length - 1];
+    if(!s) return;
+    var last = s[s.length - 1];
+    if(Math.hypot(p.x - last.x, p.y - last.y) < 1.5) return;
+    s.push(p);
+    redrawPad();
+  });
+
+  function endStroke(e){
+    drawing = false;
+    try{ if(pad.hasPointerCapture(e.pointerId)) pad.releasePointerCapture(e.pointerId); }catch(err){}
+  }
+  pad.addEventListener('pointerup', endStroke);
+  pad.addEventListener('pointercancel', endStroke);
+  pad.addEventListener('pointerleave', function(){ if(drawing) drawing = false; });
+}
+
+function redrawPad(){
+  if(!padCtx) return;
+  var dpr = window.devicePixelRatio || 1;
+  padCtx.save();
+  padCtx.setTransform(1, 0, 0, 1, 0, 0);
+  padCtx.clearRect(0, 0, pad.width, pad.height);
+  padCtx.restore();
+
+  padCtx.lineWidth = 3;
+  padCtx.lineCap = 'round';
+  padCtx.lineJoin = 'round';
+  padCtx.strokeStyle = '#1e3a8a';
+  padCtx.fillStyle = '#1e3a8a';
+
+  for(var i = 0; i < currentStrokes.length; i++){
+    var s = currentStrokes[i];
+    if(!s || !s.length) continue;
+    if(s.length === 1){
+      padCtx.beginPath();
+      padCtx.arc(s[0].x, s[0].y, 1.8, 0, Math.PI * 2);
+      padCtx.fill();
+      continue;
+    }
+    padCtx.beginPath();
+    padCtx.moveTo(s[0].x, s[0].y);
+    for(var k = 1; k < s.length; k++) padCtx.lineTo(s[k].x, s[k].y);
+    padCtx.stroke();
+  }
+}
+
+function clearPad(){
+  currentStrokes = [];
+  redrawPad();
+  padHint.style.display = '';
+}
+
+function undoPad(){
+  if(!currentStrokes.length) return;
+  currentStrokes.pop();
+  redrawPad();
+  if(!currentStrokes.length) padHint.style.display = '';
+}
+
+/* ==========================================================
+   5. 图像识别算法
+   ========================================================== */
+var RECOG_W = 320, RECOG_H = 160, PAD_PX = 14;
+
+function parseFormula(text){
+  var tokens = [], buf = '', i = 0;
+  while(i < text.length){
+    if(text[i] === '['){
+      if(buf){ tokens.push({ type:'text', text:buf }); buf = ''; }
+      var j = text.indexOf(']', i);
+      if(j === -1) j = text.length;
+      var inner = text.slice(i + 1, j);
+      var parts = inner.split('|');
+      tokens.push({ type:'frac', num:parts[0] || '', den:parts[1] || '' });
+      i = j + 1;
+    }else{
+      buf += text[i];
+      i++;
+    }
+  }
+  if(buf) tokens.push({ type:'text', text:buf });
+  return tokens;
+}
+
+function renderFormula(text, W, H, pad){
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  var ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#000'; ctx.strokeStyle = '#000';
+  ctx.textBaseline = 'middle';
+
+  var tokens = parseFormula(text);
+  var base = 64, totalW = 0, i, t;
+
+  for(i = 0; i < tokens.length; i++){
+    t = tokens[i];
+    if(t.type === 'frac'){
+      var fs = base * 0.78;
+      ctx.font = 'bold ' + fs + 'px "Times New Roman","Cambria",serif';
+      var nw = ctx.measureText(t.num).width;
+      var dw = ctx.measureText(t.den).width;
+      t.w = Math.max(nw, dw) + 10;
+      t.fs = fs;
+    }else{
+      ctx.font = 'bold ' + base + 'px "Times New Roman","Cambria",serif';
+      t.w = ctx.measureText(t.text).width;
+      t.fs = base;
+    }
+    totalW += t.w;
+  }
+
+  var maxH = H - 2 * pad;
+  var scale = Math.min((W - 2 * pad) / totalW, maxH / (base * 1.45));
+  var x = pad + ((W - 2 * pad) - totalW * scale) / 2;
+  var cy = H / 2;
+
+  for(i = 0; i < tokens.length; i++){
+    t = tokens[i];
+    if(t.type === 'frac'){
+      var f = t.fs * scale;
+      ctx.font = 'bold ' + f + 'px "Times New Roman","Cambria",serif';
+      var midX = x + t.w * scale / 2;
+      ctx.textAlign = 'center';
+      ctx.fillText(t.num, midX, cy - f * 0.72);
+      ctx.fillText(t.den, midX, cy + f * 0.72);
+      ctx.beginPath();
+      ctx.lineWidth = Math.max(2, 3.5 * scale);
+      ctx.moveTo(x + 2, cy);
+      ctx.lineTo(x + t.w * scale - 2, cy);
+      ctx.stroke();
+      ctx.textAlign = 'left';
+    }else{
+      var g = t.fs * scale;
+      ctx.font = 'bold ' + g + 'px "Times New Roman","Cambria",serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(t.text, x, cy);
+    }
+    x += t.w * scale;
+  }
+  return cv;
+}
+
+function renderInk(strokes, W, H, pad){
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  var ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#000'; ctx.fillStyle = '#000';
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+  var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  var i, k, s, p;
+  for(i = 0; i < strokes.length; i++){
+    s = strokes[i];
+    for(k = 0; k < s.length; k++){
+      p = s[k];
+      if(p.x < minX) minX = p.x;
+      if(p.x > maxX) maxX = p.x;
+      if(p.y < minY) minY = p.y;
+      if(p.y > maxY) maxY = p.y;
+    }
+  }
+  var w = Math.max(1, maxX - minX), h = Math.max(1, maxY - minY);
+  var scale = Math.min((W - 2 * pad) / w, (H - 2 * pad) / h);
+  var ox = (W - w * scale) / 2 - minX * scale;
+  var oy = (H - h * scale) / 2 - minY * scale;
+
+  ctx.lineWidth = 4;
+  for(i = 0; i < strokes.length; i++){
+    s = strokes[i];
+    if(!s.length) continue;
+    if(s.length === 1){
+      ctx.beginPath();
+      ctx.arc(s[0].x * scale + ox, s[0].y * scale + oy, 2, 0, Math.PI * 2);
+      ctx.fill();
+      continue;
+    }
+    ctx.beginPath();
+    ctx.moveTo(s[0].x * scale + ox, s[0].y * scale + oy);
+    for(k = 1; k < s.length; k++){
+      ctx.lineTo(s[k].x * scale + ox, s[k].y * scale + oy);
+    }
+    ctx.stroke();
+  }
+  return cv;
+}
+
+function signature(cv){
+  var ctx = cv.getContext('2d');
+  var W = cv.width, H = cv.height;
+  var data = ctx.getImageData(0, 0, W, H).data;
+  var v = new Float64Array(W), h = new Float64Array(H);
+  var x, y, idx;
+  for(y = 0; y < H; y++){
+    for(x = 0; x < W; x++){
+      idx = (y * W + x) * 4;
+      var val = data[idx] < 128 ? 1 : 0;
+      v[x] += val;
+      h[y] += val;
+    }
+  }
+  normalize(v); normalize(h);
+  return { v:v, h:h };
+}
+
+function normalize(a){
+  var s = 0, i;
+  for(i = 0; i < a.length; i++) s += a[i] * a[i];
+  s = Math.sqrt(s) || 1;
+  for(i = 0; i < a.length; i++) a[i] /= s;
+}
+
+function cosine(a, b){
+  var s = 0, i;
+  for(i = 0; i < a.length; i++) s += a[i] * b[i];
+  return s;
+}
+
+// 核心：生成混合了易错项的候选词
+function generateCandidates(strokes, currentQ) {
+  var inkCv = renderInk(strokes, RECOG_W, RECOG_H, PAD_PX);
+  var inkSig = signature(inkCv);
+  
+  var scored = [];
+  ALL_FORMULAS.forEach(function(f) {
+    var refCv = renderFormula(f.answerStr, RECOG_W, RECOG_H, PAD_PX);
+    var refSig = signature(refCv);
+    var sim = 0.55 * cosine(inkSig.v, refSig.v) + 0.45 * cosine(inkSig.h, refSig.h);
+    scored.push({ answerStr: f.answerStr, display: f.display, sim: sim, isDistractor: false });
+  });
+  
+  scored.sort(function(a, b){ return b.sim - a.sim; });
+  
+  // 1. 取前2个长得最像的“正确公式”
+  var topCorrect = [];
+  var seenDisplay = {};
+  for(var i = 0; i < scored.length; i++){
+    var s = scored[i];
+    if(!seenDisplay[s.display]){
+      topCorrect.push(s);
+      seenDisplay[s.display] = true;
+      if(topCorrect.length >= 2) break;
+    }
+  }
+  
+  // 确保本题的正确答案一定在 topCorrect 里
+  var hasCorrect = topCorrect.some(function(item){ return currentQ.answers.indexOf(item.answerStr) !== -1; });
+  if(!hasCorrect){
+    var correctAns = currentQ.answers[0];
+    var correctText = correctAns.replace(/\[/g, '').replace(/\]/g, '').replace(/\|/g, ' / ');
+    if(topCorrect.length >= 2) {
+      topCorrect[1] = { answerStr: correctAns, display: correctText, sim: 1.0, isDistractor: false };
+    } else {
+      topCorrect.push({ answerStr: correctAns, display: correctText, sim: 1.0, isDistractor: false });
+    }
+  }
+
+  // 2. 从错误子库随机抽取 1 个干扰项
+  var topDistractor = null;
+  if(currentQ.distractors && currentQ.distractors.length > 0) {
+    var randIdx = Math.floor(Math.random() * currentQ.distractors.length);
+    var distAns = currentQ.distractors[randIdx];
+    var distText = distAns.replace(/\[/g, '').replace(/\]/g, '').replace(/\|/g, ' / ');
+    topDistractor = { answerStr: distAns, display: distText, sim: 0, isDistractor: true };
+  }
+
+  // 3. 组合选项 (2个正确 + 1个错误)
+  var finalOptions = topCorrect.slice(0, 2);
+  if(topDistractor) finalOptions.push(topDistractor);
+  
+  return shuffle(finalOptions);
+}
+
+/* ==========================================================
+   6. 答题流程
+   ========================================================== */
+function startQuiz(){
+  quizOrder = shuffle(QUESTIONS.map(function(_, i){ return i; }));
+  qIndex = 0;
+  answers = {};
+
+  $('setupPanel').hidden = true;
+  $('resultPanel').hidden = true;
+  $('quizPanel').hidden = false;
+  $('whoLabel').textContent = student.className + ' · ' + student.name;
+
+  initPad();
+  loadQuestion(0);
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function loadQuestion(idx){
+  qIndex = idx;
+  submitted = false;
+  currentStrokes = [];
+
+  currentQObj = QUESTIONS[quizOrder[idx]];
+  $('qIndex').textContent = '第 ' + (idx + 1) + ' 题';
+  $('progressLabel').textContent = '第 ' + (idx + 1) + ' / ' + TOTAL_Q + ' 题';
+  $('qPrompt').textContent = currentQObj.prompt;
+  $('qSub').textContent = currentQObj.sub;
+
+  clearPad();
+  padHint.style.display = '';
+
+  writeBox.classList.remove('done');
+  $('qActions').hidden = false;
+  $('qResult').hidden = true;
+  $('qNav').hidden = true;
+
+  $('btnUndo').disabled = false;
+  $('btnClearPad').disabled = false;
+  $('btnSubmitQ').disabled = false;
+  $('btnSubmitQ').textContent = '提交本题';
+
+  setTimeout(function(){
+    var dpr = window.devicePixelRatio || 1;
+    var rect = writeBox.getBoundingClientRect();
+    if(rect.width < 10) return;
+    pad.width = rect.width * dpr;
+    pad.height = rect.height * dpr;
+    pad.style.width = rect.width + 'px';
+    pad.style.height = rect.height + 'px';
+    padCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    padCtx.lineWidth = 3;
+    padCtx.lineCap = 'round';
+    padCtx.lineJoin = 'round';
+    padCtx.strokeStyle = '#1e3a8a';
+    redrawPad();
+  }, 50);
+}
+
+function submitQuestion(){
+  if(submitted) return;
+  if(!currentStrokes.length){ toast('请先手写公式', true); return; }
+
+  $('btnSubmitQ').disabled = true;
+  $('btnSubmitQ').textContent = '识别中…';
+  
+  setTimeout(function(){
+    var candidates = generateCandidates(currentStrokes, currentQObj);
+    showCandidateModal(candidates, currentQObj);
+    $('btnSubmitQ').disabled = false;
+    $('btnSubmitQ').textContent = '提交本题';
+  }, 100);
+}
+
+/* 弹窗逻辑 */
+function showCandidateModal(candidates, q) {
+  var listEl = $('candidateList');
+  listEl.innerHTML = '';
+  
+  candidates.forEach(function(c) {
+    var btn = document.createElement('div');
+    btn.className = 'candidate-item';
+    btn.textContent = c.display;
+    btn.onclick = function() {
+      $('candidateModal').classList.remove('show');
+      confirmAnswer(c, q);
+    };
+    listEl.appendChild(btn);
+  });
+  
+  // 恢复默认视图
+  $('modalNormalView').style.display = 'block';
+  $('modalAllView').style.display = 'none';
+
+  // 生成全部题库列表（兜底用）
+  var allListEl = $('allFormulaList');
+  allListEl.innerHTML = '';
+  
+  var allDisplays = [];
+  var seen = {};
+  ALL_FORMULAS.forEach(function(f) {
+    if(!seen[f.display]){
+      seen[f.display] = true;
+      allDisplays.push(f);
+    }
+  });
+  
+  allDisplays.forEach(function(c) {
+    var btn = document.createElement('div');
+    btn.className = 'candidate-item';
+    btn.style.padding = '10px';
+    btn.style.fontSize = '18px';
+    btn.textContent = c.display;
+    btn.onclick = function() {
+      $('candidateModal').classList.remove('show');
+      confirmAnswer(c, q);
+    };
+    allListEl.appendChild(btn);
+  });
+
+  $('candidateModal').classList.add('show');
+}
+
+function confirmAnswer(selectedCandidate, q) {
+  // 只有当选中的公式存在于 q.answers 中才算对
+  var isCorrect = q.answers.indexOf(selectedCandidate.answerStr) !== -1;
+  
+  answers[q.key] = { 
+    ok: isCorrect, 
+    sim: selectedCandidate.sim || 1, 
+    display: q.display,
+    selected: selectedCandidate.display
+  };
+
+  submitted = true;
+  writeBox.classList.add('done');
+  $('qActions').hidden = true;
+
+  showConfirmedResult(isCorrect, selectedCandidate, q);
+}
+
+function showConfirmedResult(isCorrect, selected, q) {
+  var box = $('qResult');
+  box.hidden = false;
+  box.className = isCorrect ? 'ok' : 'bad';
+
+  var iconSvg = isCorrect
+    ? '<svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="20" fill="#16a34a"/>' +
+      '<path d="M12 21.5l6 6 12-13" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="20" fill="#dc2626"/>' +
+      '<path d="M14 14l14 14M28 14l-14 14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>';
+
+  var html =
+    '<div class="q-res-icon">' + iconSvg + '</div>' +
+    '<div class="q-res-text">' +
+      '<b>' + (isCorrect ? '回答正确！' : '回答错误') + '</b><br>' +
+      '你选择的公式：<span class="q-res-ans">' + esc(selected.display) + '</span><br>' +
+      (isCorrect ? '' : '正确答案：<span class="q-res-ans">' + esc(q.display) + '</span><br>') +
+    '</div>';
+
+  box.innerHTML = html;
+
+  var nav = $('qNav');
+  nav.hidden = false;
+  var nextBtn = $('btnNextQ');
+  if(qIndex === TOTAL_Q - 1){
+    nextBtn.textContent = '完成作答，查看总成绩';
+    nextBtn.className = 'btn success';
+  }else{
+    nextBtn.textContent = '下一题 →';
+    nextBtn.className = 'btn primary';
+  }
+}
+
+function nextQuestion(){
+  if(qIndex < TOTAL_Q - 1){
+    loadQuestion(qIndex + 1);
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }else{
+    finalSubmit();
+  }
+}
+
+/* ==========================================================
+   7. 总成绩
+   ========================================================== */
+function levelOf(score, full){
+  var pct = full > 0 ? (score / full) * 100 : 0;
+  if(pct >= 90) return { text:'优秀', color:'#15803d', bg:'#dcfce7', msg:'公式记忆扎实，变形熟练，继续保持！' };
+  if(pct >= 80) return { text:'良好', color:'#1d4ed8', bg:'#dbeafe', msg:'掌握较好，个别公式变形还需巩固。' };
+  if(pct >= 70) return { text:'合格', color:'#b45309', bg:'#fef3c7', msg:'基本掌握，建议重点复习易混公式的变形。' };
+  if(pct >= 60) return { text:'待加强', color:'#c2410c', bg:'#ffedd5', msg:'部分公式记不牢，请对照课本整理并默写。' };
+  return { text:'需努力', color:'#b91c1c', bg:'#fee2e2', msg:'公式记忆不熟练，建议先理解各量关系再练习书写。' };
+}
+
+function finalSubmit(){
+  var correct = 0, i, q;
+  for(i = 0; i < QUESTIONS.length; i++){
+    q = QUESTIONS[i];
+    if(answers[q.key] && answers[q.key].ok) correct++;
+  }
+  var score = correct * PER_SCORE;
+  var full = TOTAL_Q * PER_SCORE;
+  var accuracy = Math.round(correct / TOTAL_Q * 100);
+  var lv = levelOf(score, full);
+
+  $('quizPanel').hidden = true;
+  $('resultPanel').hidden = false;
+
+  var CIRC = 2 * Math.PI * 52;
+  var arc = $('ringArc');
+  arc.setAttribute('stroke-dasharray', CIRC);
+  arc.setAttribute('stroke-dashoffset', CIRC * (1 - score / full));
+  arc.setAttribute('stroke', lv.color);
+  $('ringScore').textContent = score;
+
+  $('resCorrect').textContent = correct;
+  $('resAcc').textContent = accuracy + '%';
+  var pill = $('resLevel');
+  pill.textContent = lv.text;
+  pill.style.color = lv.color;
+  pill.style.background = lv.bg;
+  $('resMsg').textContent = lv.msg;
+
+  var rows = '';
+  for(i = 0; i < QUESTIONS.length; i++){
+    q = QUESTIONS[i];
+    var a = answers[q.key];
+    var ok = a && a.ok;
+    rows += '<tr>' +
+      '<td class="c">' + (i + 1) + '</td>' +
+      '<td>' + esc(q.prompt) + '</td>' +
+      '<td class="c ans-mono">' + esc(q.display) + '</td>' +
+      '<td class="c ' + (ok ? 'ok-tag' : 'bad-tag') + '">' + (ok ? '正确' : '错误') + '</td>' +
+      '</tr>';
+  }
+  $('resDetail').innerHTML =
+    '<table><thead><tr>' +
+    '<th style="width:8%">序号</th><th>公式提示</th>' +
+    '<th style="width:24%">参考答案</th><th style="width:12%">判定</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table>';
+
+  var rec = {
+    name: student.name,
+    className: student.className,
+    score: score,
+    full: full,
+    correct: correct,
+    total: TOTAL_Q,
+    accuracy: accuracy,
+    level: lv.text,
+    time: new Date().toLocaleString('zh-CN', { hour12:false }),
+    details: QUESTIONS.map(function(q, i){
+      var a = answers[q.key];
+      return {
+        no: i + 1,
+        prompt: q.prompt,
+        display: q.display,
+        ok: !!(a && a.ok)
+      };
+    })
+  };
+  saveRecord(rec);
+
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+/* ==========================================================
+   8. 记录存储
+   ========================================================== */
+function loadRecords(){
+  try{
+    var raw = localStorage.getItem(STORE_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+function saveRecord(rec){
+  var list = loadRecords();
+  list.push(rec);
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(list));
+  }catch(e){
+    toast('本机存储空间不足，本次记录未保存', true);
+  }
+  updateRecCount();
+}
+function updateRecCount(){
+  var el = $('recCount');
+  if(el) el.textContent = loadRecords().length;
+}
+
+/* ==========================================================
+   9. 下载 DOC 统计
+   ========================================================== */
+function downloadDoc(){
+  var list = loadRecords();
+  if(!list.length){ toast('本机还没有任何检测记录', true); return; }
+
+  var n = list.length;
+  var avgScore = (list.reduce(function(s, r){ return s + r.score; }, 0) / n).toFixed(1);
+  var avgAcc   = (list.reduce(function(s, r){ return s + r.accuracy; }, 0) / n).toFixed(1);
+  var excelCnt = list.filter(function(r){ return r.accuracy >= 90; }).length;
+  var goodCnt  = list.filter(function(r){ return r.accuracy >= 80 && r.accuracy < 90; }).length;
+  var passCnt  = list.filter(function(r){ return r.accuracy >= 60; }).length;
+
+  var rows = list.map(function(r, i){
+    var wrong = (r.details || []).filter(function(d){ return !d.ok; })
+      .map(function(d){ return d.no + '.' + d.prompt + '（应写：' + d.display + '）'; })
+      .join('；') || '无';
+    return '<tr>' +
+      '<td class="c">' + (i + 1) + '</td>' +
+      '<td class="c">' + esc(r.name) + '</td>' +
+      '<td class="c">' + esc(r.className) + '</td>' +
+      '<td class="c">' + esc(r.time) + '</td>' +
+      '<td class="c strong">' + r.score + '/' + r.full + '</td>' +
+      '<td class="c">' + r.accuracy + '%</td>' +
+      '<td class="c">' + esc(r.level) + '</td>' +
+      '<td class="wrong">' + esc(wrong) + '</td>' +
+      '</tr>';
+  }).join('');
+
+  var docHtml = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>公式手写检测结果</title>' +
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->' +
+    '<style>' +
+    '@page{size:A4 landscape;margin:1.2cm 1cm;}' +
+    'body{font-family:"宋体",SimSun,serif;font-size:10.5pt;color:#000;line-height:1.55;}' +
+    'h1{font-family:"黑体",SimHei;font-size:16pt;text-align:center;margin:0 0 8pt;letter-spacing:1pt;}' +
+    '.meta{text-align:center;font-size:9.5pt;color:#444;margin-bottom:10pt;}' +
+    '.summary{width:100%;margin:0 0 10pt;border-collapse:collapse;}' +
+    '.summary td{border:none;padding:2pt 12pt 2pt 0;font-size:10pt;}' +
+    'table.list{width:100%;border-collapse:collapse;table-layout:fixed;}' +
+    'table.list th,table.list td{border:1px solid #333;padding:3.5pt 4pt;font-size:9pt;vertical-align:top;word-break:break-all;}' +
+    'table.list th{background:#dbeafe;text-align:center;font-family:"黑体",SimHei;font-weight:bold;}' +
+    'td.c{text-align:center;} td.strong{font-weight:bold;color:#1d4ed8;} td.wrong{font-size:8.5pt;color:#b91c1c;}' +
+    '.foot{margin-top:14pt;font-size:10pt;} .foot td{border:none;padding-top:16pt;}' +
+    '</style></head><body>' +
+    '<h1>九年级物理 · 公式手写检测结果统计</h1>' +
+    '<div class="meta">导出时间：' + new Date().toLocaleString('zh-CN', { hour12:false }) + '</div>' +
+    '<table class="summary"><tr>' +
+      '<td>检测人数：<b>' + n + '</b> 人</td>' +
+      '<td>平均得分：<b>' + avgScore + '</b> 分</td>' +
+      '<td>平均正确率：<b>' + avgAcc + '%</b></td>' +
+    '</tr><tr>' +
+      '<td>优秀（≥90%）：<b>' + excelCnt + '</b> 人</td>' +
+      '<td>良好（80—89%）：<b>' + goodCnt + '</b> 人</td>' +
+      '<td>及格（≥60%）：<b>' + passCnt + '</b> 人</td>' +
+    '</tr></table>' +
+    '<table class="list"><thead><tr>' +
+      '<th style="width:5%">序号</th><th style="width:8%">姓名</th>' +
+      '<th style="width:11%">班级</th><th style="width:13%">检测时间</th>' +
+      '<th style="width:8%">得分</th><th style="width:7%">正确率</th>' +
+      '<th style="width:7%">等级</th><th>错题详情</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<table class="foot"><tr>' +
+      '<td>教师签字：________________</td>' +
+      '<td style="text-align:right">日期：________________</td>' +
+    '</tr></table></body></html>';
+
+  try{
+    var blob = new Blob(['\ufeff' + docHtml], { type:'application/msword;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '物理量与符号检测结果.DOC';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1500);
+    toast('已开始下载 DOC 文件');
+  }catch(e){
+    toast('下载失败：' + e.message, true);
+  }
+}
+
+/* ==========================================================
+   10. 事件绑定
+   ========================================================== */
+function bindAll(){
+  var btnStart = $('btnStart');
+  if(btnStart && !btnStart.dataset.bound){
+    btnStart.dataset.bound = '1';
+    btnStart.addEventListener('click', function(){
+      var clsEl = $('inClass'), nameEl = $('inName');
+      clsEl.classList.remove('err');
+      nameEl.classList.remove('err');
+
+      var cls = clsEl.value.trim();
+      var name = nameEl.value.trim();
+      if(!cls){ clsEl.classList.add('err'); toast('请先填写班级', true); clsEl.focus(); return; }
+      if(!name){ nameEl.classList.add('err'); toast('请先填写姓名', true); nameEl.focus(); return; }
+
+      student = { className: cls, name: name };
+      var btn = this;
+      btn.textContent = '正在加载题目…';
+      btn.disabled = true;
+      setTimeout(function(){
+        try{
+          startQuiz();
+        }catch(e){
+          var bar = $('errorBar');
+          bar.style.display = 'block';
+          bar.textContent = '⚠ 开始答题失败：' + e.message;
+        }finally{
+          btn.textContent = '开始答题';
+          btn.disabled = false;
+        }
+      }, 60);
+    });
+  }
+
+  $('btnUndo').addEventListener('click', function(){
+    if(submitted) return;
+    undoPad();
+  });
+  $('btnClearPad').addEventListener('click', function(){
+    if(submitted) return;
+    clearPad();
+  });
+  $('btnSubmitQ').addEventListener('click', function(){
+    if(submitted) return;
+    submitQuestion();
+  });
+  $('btnNextQ').addEventListener('click', function(){
+    nextQuestion();
+  });
+
+  // 弹窗相关按钮
+  $('btnShowAll').addEventListener('click', function(){
+    $('modalNormalView').style.display = 'none';
+    $('modalAllView').style.display = 'flex';
+  });
+
+  $('btnBackToNormal').addEventListener('click', function(){
+    $('modalAllView').style.display = 'none';
+    $('modalNormalView').style.display = 'block';
+  });
+
+  $('btnCancelCandidate').addEventListener('click', function(){
+    $('candidateModal').classList.remove('show');
+  });
+
+  $('btnAgain').addEventListener('click', function(){
+    $('resultPanel').hidden = true;
+    startQuiz();
+  });
+  $('btnNextStudent').addEventListener('click', function(){
+    $('resultPanel').hidden = true;
+    $('quizPanel').hidden = true;
+    $('setupPanel').hidden = false;
+    $('inName').value = '';
+    $('inName').focus();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+
+  $('btnDownload').addEventListener('click', downloadDoc);
+
+  var clearArmed = false;
+  $('btnClear').addEventListener('click', function(){
+    var n = loadRecords().length;
+    if(n === 0){ toast('本机没有记录可清空'); return; }
+    if(!clearArmed){
+      clearArmed = true;
+      this.textContent = '再次点击确认清空（' + n + ' 条）';
+      toast('再次点击将删除全部 ' + n + ' 条记录', true);
+      var self = this;
+      setTimeout(function(){ clearArmed = false; self.textContent = '清空本机记录'; }, 4000);
+      return;
+    }
+    try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+    updateRecCount();
+    clearArmed = false;
+    this.textContent = '清空本机记录';
+    toast('已清空本机记录');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', bindAll);
+if(document.readyState !== 'loading') bindAll();
+
+/* 窗口尺寸变化时重绘手写画布 */
+var resizeTimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    if(!pad || $('quizPanel').hidden) return;
+    var dpr = window.devicePixelRatio || 1;
+    var rect = writeBox.getBoundingClientRect();
+    if(rect.width < 10) return;
+    pad.width = rect.width * dpr;
+    pad.height = rect.height * dpr;
+    pad.style.width = rect.width + 'px';
+    pad.style.height = rect.height + 'px';
+    padCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    padCtx.lineWidth = 3;
+    padCtx.lineCap = 'round';
+    padCtx.lineJoin = 'round';
+    padCtx.strokeStyle = '#1e3a8a';
+    redrawPad();
+  }, 200);
+});
+
+/* 初始化 */
+updateRecCount();
+
+})();
+</script>
+</body>
+</html>
